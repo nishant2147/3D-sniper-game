@@ -8,7 +8,7 @@ public class EnemyRandomMovement : MonoBehaviour
     public float sampleRadius = 2f;
     public float waypointReachThreshold = 0.5f;
     public float waitAtWaypoint = 2f;
-    public bool loop = true;    
+    public bool loop = true;
     public bool randomize = false;
 
     [Header("Movement Settings")]

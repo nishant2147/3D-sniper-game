@@ -37,7 +37,7 @@ public class CamerafollowBUlleu : MonoBehaviour
         mainCamera.enabled = false;
         bulletCamera.enabled = true;
         Time.timeScale = slowMotionScale;
-        Time.fixedDeltaTime = 0.02f * Time.timeScale; 
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
         while (bulletToFollow != null)
         {

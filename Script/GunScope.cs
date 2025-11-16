@@ -19,47 +19,74 @@ public class GunScope : MonoBehaviour
     public bool isScoped = false;
     private float targetFOV;
 
+    private bool isMobile;
+
     void Start()
     {
         if (mainCamera == null)
             mainCamera = Camera.main;
 
         targetFOV = mainCamera.fieldOfView;
+        isMobile = Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer;
     }
 
     void Update()
     {
-        if (Input.GetButtonDown("Fire2")) 
+        if (!isMobile)
         {
-            ToggleScope();
-        }
+            if (Input.GetButtonDown("Fire2"))
+                ToggleScope();
 
-        if (isScoped)
-        {
-            float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if (scroll != 0f)
+            if (isScoped)
             {
-                targetFOV -= scroll * scrollSensitivity;
-                targetFOV = Mathf.Clamp(targetFOV, minFOV, maxFOV);
+                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                if (scroll != 0f)
+                {
+                    targetFOV -= scroll * scrollSensitivity;
+                    targetFOV = Mathf.Clamp(targetFOV, minFOV, maxFOV);
+                }
+            }
+            else
+            {
+                targetFOV = maxFOV;
             }
         }
         else
         {
-            targetFOV = maxFOV;
+            // Mobile pinch zoom
+            if (isScoped && Input.touchCount == 2)
+            {
+                Touch touchZero = Input.GetTouch(0);
+                Touch touchOne = Input.GetTouch(1);
+
+                Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
+                Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+
+                float prevMagnitude = (touchZeroPrevPos - touchOnePrevPos).magnitude;
+                float currentMagnitude = (touchZero.position - touchOne.position).magnitude;
+
+                float difference = currentMagnitude - prevMagnitude;
+
+                targetFOV -= difference * 0.05f; // adjust sensitivity
+                targetFOV = Mathf.Clamp(targetFOV, minFOV, maxFOV);
+            }
         }
 
         mainCamera.fieldOfView = Mathf.Lerp(mainCamera.fieldOfView, targetFOV, Time.deltaTime * zoomSpeed);
     }
 
+    public void OnScopeButton() // for mobile UI button
+    {
+        ToggleScope();
+    }
+
     public void ToggleScope()
     {
         isScoped = !isScoped;
-        animator.SetBool("Scoped", isScoped);
-
+        animator?.SetBool("Scoped", isScoped);
         gunModel.SetActive(!isScoped);
         scopeOverlay?.SetActive(isScoped);
-
-        scopeEyepiece.SetActive(isScoped);
+        scopeEyepiece?.SetActive(isScoped);
     }
 
     public void DisableScope()
@@ -67,13 +94,10 @@ public class GunScope : MonoBehaviour
         if (isScoped)
         {
             isScoped = false;
-            animator.SetBool("Scoped", false);
-
+            animator?.SetBool("Scoped", false);
             gunModel.SetActive(true);
             scopeOverlay?.SetActive(false);
-
-            scopeEyepiece.SetActive(false);
-
+            scopeEyepiece?.SetActive(false);
             targetFOV = maxFOV;
         }
     }
